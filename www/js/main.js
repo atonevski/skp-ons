@@ -14,6 +14,43 @@ window.fn.load = function(page) {
   return content.load(page).then(menu.close.bind(menu));
 };
 
+window.fn.load = function(page) {
+  var content, menu;
+  content = $('#content')[0];
+  menu = $('#menu')[0];
+  return content.load(page).then(menu.close.bind(menu));
+};
+
+window.fn.loadHome = function() {
+  var content, menu;
+  content = $('#content')[0];
+  menu = $('#menu')[0];
+  return content.load('views/home.html').then(menu.close.bind(menu)).then(function() {
+    return fn.renderHome();
+  });
+};
+
+window.fn.renderHome = function() {
+  var KEY, LAT, LNG, url;
+  KEY = '6376c1cdba2fa461f346e9a27524406d';
+  LAT = 42;
+  LNG = 21.43;
+  url = `https://api.darksky.net/forecast/${KEY}/${LAT},${LNG}?units=si`;
+  return $.ajax({
+    url: url,
+    method: 'GET'
+  }).done(function(d) {
+    console.log(d);
+    window.fn.weather = d;
+    return $('#temp')[0].innerHTML = `${d.currently.temperature}&deg;C`;
+  });
+};
+
+ons.ready(function() {
+  // cordova stuff
+  return fn.loadHome();
+});
+
 window.fn.loadSensors = function() {
   var content, menu;
   content = $('#content')[0];
@@ -96,7 +133,7 @@ window.fn.loadSensors = function() {
 // CENTER = [ 41.99249998, 21.42361109 ]
 // CITY = 'skopje'
 // USERNAME = "atonevski"
-// PASSWORD = "pv1530kay" 
+// PASSWORD = "pv1530kay"
 // sensors = []
 
 // parsePos = (s) ->
