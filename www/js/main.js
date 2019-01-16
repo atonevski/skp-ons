@@ -61,14 +61,12 @@ renderHome = function() {
     // time
     item = ons.createElement(`<ons-list-item class='open-sans'>\n  <div class="left">\n    <ons-icon icon="ion-clock" class="list-item__icon"></ons-icon>\n  </div>\n  <div class='center'>\n    <strong>Time:</strong>&nbsp;\n    <small>\n      ${((new Date(d.currently.time * 1000)).toString().slice(0, 24))}&nbsp;\n      ${d.timezone}\n    </small>\n  </div>\n</ons-list-item>`);
     list.append(item);
-    
     // summary
     item = ons.createElement(`<ons-list-item class='open-sans'>\n  <div class="left">\n    <ons-icon icon="fa-pencil-ruler" class="list-item__icon"></ons-icon>\n  </div>\n  <div class='center'>\n    <strong>Summary:</strong>&nbsp;\n    ${d.currently.summary}\n  </div>\n</ons-list-item>`);
     list.append(item);
     // apparent temp.
-    item = ons.createElement(`<ons-list-item class='open-sans'>\n  <div class="left">\n    <ons-icon icon="fa-thermometer-half" class="list-item__icon"></ons-icon>\n  </div>\n  <div class='center'> \n    <strong>Apparent temp.:</strong>&nbsp;\n      ${Math.round(d.currently.humidity)}&degC;\n  </div>\n</ons-list-item>`);
+    item = ons.createElement(`<ons-list-item class='open-sans'>\n  <div class="left">\n    <ons-icon icon="fa-thermometer-half" class="list-item__icon"></ons-icon>\n  </div>\n  <div class='center'>\n    <strong>Apparent temp.:</strong>&nbsp;\n      ${Math.round(d.currently.humidity)}&degC;\n  </div>\n</ons-list-item>`);
     list.append(item);
-    
     // humidity
     item = ons.createElement(`<ons-list-item class='open-sans'>\n  <div class="left">\n    <ons-icon icon="fa-tint" class="list-item__icon"></ons-icon>\n  </div>\n  <div class='center'>\n    <strong>Humidity:</strong>&nbsp;\n    ${Math.round(d.currently.humidity * 100)}%\n  </div>\n</ons-list-item>`);
     list.append(item);
@@ -84,7 +82,6 @@ renderHome = function() {
     // wind
     item = ons.createElement(`<ons-list-item class='open-sans'>\n  <div class="left">\n    <ons-icon icon="fa-redo-alt" class="list-item__icon" spin></ons-icon>\n  </div>\n  <div class='center'>\n    <strong>Wind:</strong>&nbsp;\n    ${(mph2kmph(d.currently.windSpeed)).toFixed(2)}km/h\n  </div>\n</ons-list-item>`);
     list.append(item);
-    
     // wind bearing
     item = ons.createElement(`<ons-list-item class='open-sans'>\n  <div class="left">\n    <ons-icon icon="fa-compass" class="list-item__icon"></ons-icon>\n  </div>\n  <div class='center'>\n    <strong>Wind bearing:</strong>&nbsp;\n    ${d.currently.windBearing}&deg;\n    <small>(0&deg;: north, clockwise)</small>\n  </div>\n</ons-list-item>`);
     list.append(item);
@@ -107,57 +104,6 @@ ons.ready(function() {
   // cordova stuff
   return fn.loadHome();
 });
-
-window.fn.loadSensors = function() {
-  var content, menu;
-  content = $('#content')[0];
-  menu = $('#menu')[0];
-  return content.load('views/sensors.html').then(menu.close.bind(menu)).then(function() {
-    var CENTER, CITY, PASSWORD, USERNAME, getSensors, map, parsePos, renderMap, sensors;
-    
-    // MAP
-
-    // Leaflet MAP
-    map = null;
-    CENTER = [41.99249998, 21.42361109];
-    CITY = 'skopje';
-    USERNAME = "atonevski";
-    PASSWORD = "pv1530kay";
-    sensors = [];
-    parsePos = function(s) {
-      return s.split(/\s*,\s*/).map(function(v) {
-        return parseFloat(v);
-      });
-    };
-    getSensors = function() {
-      return $.ajax({
-        url: `https://${CITY}.pulse.eco/rest/sensor`,
-        method: 'GET',
-        username: USERNAME,
-        password: PASSWORD
-      }).done(function(d) {
-        var i, len, marker, pos, results, s;
-        console.log(d);
-        sensors = d;
-        results = [];
-        for (i = 0, len = sensors.length; i < len; i++) {
-          s = sensors[i];
-          pos = parsePos(s.position);
-          results.push(marker = L.marker(pos).addTo(map).bindPopup(`<p>Sensor: ${s.description}</p>`));
-        }
-        return results;
-      });
-    };
-    renderMap = function() {
-      map = L.map('map-id').setView(CENTER, 12);
-      // L.tileLayer 'http://{s}.tile.osm.org/{z}/{x}/{y}.png', {}
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map);
-      console.log(`base64: ${btoa('abc')}`);
-      return getSensors();
-    };
-    return renderMap();
-  });
-};
 
 // # 1st experimental code
 // # - maps

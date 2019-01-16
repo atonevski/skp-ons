@@ -64,7 +64,7 @@ renderHome = () ->
       </ons-list-item>
     """
     list.append item
-    
+
     # summary
     item = ons.createElement """
       <ons-list-item class='open-sans'>
@@ -85,14 +85,14 @@ renderHome = () ->
         <div class="left">
           <ons-icon icon="fa-thermometer-half" class="list-item__icon"></ons-icon>
         </div>
-        <div class='center'> 
+        <div class='center'>
           <strong>Apparent temp.:</strong>&nbsp;
             #{ Math.round d.currently.humidity }&degC;
         </div>
       </ons-list-item>
     """
     list.append item
-    
+
     # humidity
     item = ons.createElement """
       <ons-list-item class='open-sans'>
@@ -158,7 +158,7 @@ renderHome = () ->
       </ons-list-item>
     """
     list.append item
- 
+
     # wind bearing
     item = ons.createElement """
       <ons-list-item class='open-sans'>
@@ -235,54 +235,6 @@ ons.ready () ->
   # cordova stuff
   fn.loadHome()
 
-window.fn.loadSensors = () ->
-  content = $('#content')[0]
-  menu = $('#menu')[0]
-
-  content.load 'views/sensors.html'
-         .then menu.close.bind(menu)
-         .then () ->
-            #
-            # MAP
-            #
-            # Leaflet MAP
-            map = null
-            CENTER = [ 41.99249998, 21.42361109 ]
-            CITY = 'skopje'
-            USERNAME = "atonevski"
-            PASSWORD = "pv1530kay"
-            sensors = []
-
-            parsePos = (s) ->
-              s.split /\s*,\s*/
-                .map (v) -> parseFloat(v)
-
-            getSensors = () ->
-              $.ajax
-                url: "https://#{ CITY }.pulse.eco/rest/sensor"
-                method: 'GET'
-                username: USERNAME
-                password: PASSWORD
-              .done (d) ->
-                console.log d
-                sensors = d
-                for s in sensors
-                  pos = parsePos s.position
-                  marker = L.marker pos
-                    .addTo map
-                    .bindPopup "<p>Sensor: #{ s.description }</p>"
-
-            renderMap = () ->
-              map = L.map 'map-id'
-                    .setView CENTER, 12
-
-              L.tileLayer 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { }
-              # L.tileLayer 'http://{s}.tile.osm.org/{z}/{x}/{y}.png', {}
-              .addTo map
-
-              console.log "base64: #{ btoa 'abc' }"
-              getSensors()
-            renderMap()
 
 
 # # 1st experimental code
