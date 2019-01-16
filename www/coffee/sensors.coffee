@@ -40,4 +40,5 @@ renderMap = () ->
 
   console.log "base64: #{ btoa 'abc' }"
   getSensors()
+
 renderMap()

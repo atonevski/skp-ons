@@ -1,7 +1,11 @@
 .temp-tall {
+  margin: 0px;
   padding-top: 2px;
   padding-bottom: 2px;
   font-size: 128px;
   font-family: 'Open Sans Condensed', sans-serif;
   text-align: center;
 }
+
+.open-sans { font-family: 'Open Sans'; }
+.roboto { font-family: 'Roboto'; }
