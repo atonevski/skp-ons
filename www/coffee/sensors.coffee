@@ -53,8 +53,54 @@ window.fn.loadSensors = () ->
             parsePos = (s) ->
               s.split /\s*,\s*/
                 .map (v) -> parseFloat(v)
+            
+            toDTM = (d) ->
+              throw "#{ d } is not Date()" unless d instanceof Date
+              dd = (new Date(d - d.getTimezoneOffset()*1000*60))
+              ymd= dd.toISOString()[0..9]
+              re = /(\d\d:\d\d:\d\d) GMT([-+]\d+)/gm
+              s = re.exec d.toString()
+              "#{ ymd }T#{ s[1] }#{ s[2][0..2] }:#{ s[2][3..4] }"
 
+            getLast24h = () ->
+              for id, s of window.fn.sensors
+                do(id, s) =>
+                  #...
+                  to = new Date()
+                  from = new Date to - 24*60*60*1000
+                  url = "https://#{ CITY }.pulse.eco/rest/dataRaw?" +
+                        "sensorId=#{ id }&" +
+                        "from=#{ encodeURIComponent toDTM(from) }&" +
+                        "to=#{ encodeURIComponent toDTM(to) }"
+                  # console.log url
+                  $.ajax
+                    url: url
+                    method: 'GET'
+                    username: USERNAME
+                    password: PASSWORD
+                    dataType: "json"
+                    headers:
+                      "Authorization": "Basic " + btoa(USERNAME + ":" + PASSWORD)
+                  .done (d) =>
+                    # console.log s
+                    # window.fn.sensors[id].data = data
+                    s.data = d
+                    # here we should create the marker for sensor...
+                    pos = parsePos s.position
+                    # filter unique type/param values
+                    params = s.data 
+                              .map (x) -> x.type
+                              .filter (v, i, self) -> self.indexOf(v) is i
+                    marker = L.marker pos
+                      .addTo map
+                      .bindPopup """
+                        <p>Sensor: #{ s.name }</p>
+                        <p>Parameters: #{ params.join(', ') }</p>
+                      """
+                  
             get24h = () ->
+              # instead use loop over sensors & retreive data
+              # when tested put this code in a separate function
               $.ajax
                 url: "https://#{ CITY }.pulse.eco/rest/data24h"
                 method: 'GET'
@@ -64,9 +110,24 @@ window.fn.loadSensors = () ->
                 # console.log d
                 # we assume we have loaded sensors data
                 for id, s of  window.fn.sensors
-                  data = d.filter (x) -> s.sensorId === id
+                  data = d.filter (x) -> x.sensorId is id
                   window.fn.sensors[id].data = data
-                  # here we should create the marker for sensor...
+
+                console.log window.fn.sensors
+
+                # here we should create the marker for sensor...
+                for id, s of  window.fn.sensors
+                  pos = parsePos s.position
+                  # filter unique type/param values
+                  params = s.data 
+                            .map (x) -> x.type
+                            .filter (v, i, self) -> self.indexOf(v) is i
+                  marker = L.marker pos
+                    .addTo map
+                    .bindPopup """
+                      <p>Sensor: #{ s.name }</p>
+                      <p>Parameters: #{ params.join(', ') }</p>
+                    """
                   
             getSensors = () ->
               $.ajax
@@ -85,14 +146,16 @@ window.fn.loadSensors = () ->
                     window.fn.sensors[s.sensorId] = s
                     window.fn.sensors[s.sensorId].name = s.description
 
-                console.log window.fn.sensors
 
                 sensors = d
-                for id, s of  window.fn.sensors
-                  pos = parsePos s.position
-                  marker = L.marker pos
-                    .addTo map
-                    .bindPopup "<p>Sensor: #{ s.name }</p>"
+                # get24h()
+                getLast24h()
+
+                # for id, s of  window.fn.sensors
+                #   pos = parsePos s.position
+                #   marker = L.marker pos
+                #     .addTo map
+                #     .bindPopup "<p>Sensor: #{ s.name }</p>"
 
             renderMap = () ->
               map = L.map 'map-id'
