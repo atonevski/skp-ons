@@ -9,3 +9,9 @@
 
 .open-sans { font-family: 'Open Sans'; }
 .roboto { font-family: 'Roboto'; }
+
+th.center { text-align: center; }
+th.left { text-align: left; }
+th.right { text-align: right; }
+
+th {  border-bottom: 0.5px solid black; }

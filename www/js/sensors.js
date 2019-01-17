@@ -3,6 +3,8 @@
 // MAP
 
 // Leaflet MAP
+var getMarkerIcon, renderSensors;
+
 window.fn.sensors = {
   "1002": {
     name: 'Миладиновци'
@@ -92,100 +94,160 @@ window.fn.loadSensors = function() {
   content = $('#content')[0];
   menu = $('#menu')[0];
   return content.load('views/sensors.html').then(menu.close.bind(menu)).then(function() {
-    var CENTER, CITY, PASSWORD, USERNAME, get24h, getLast24h, getSensors, map, parsePos, renderMap, sensors, toDTM;
-    
-    // MAP
+    return renderSensors();
+  });
+};
 
-    // Leaflet MAP
-    map = null;
-    CENTER = [41.99249998, 21.42361109];
-    CITY = 'skopje';
-    USERNAME = "atonevski";
-    PASSWORD = "pv1530kay";
-    sensors = [];
-    parsePos = function(s) {
-      return s.split(/\s*,\s*/).map(function(v) {
-        return parseFloat(v);
-      });
-    };
-    toDTM = function(d) {
-      var dd, re, s, ymd;
-      if (!(d instanceof Date)) {
-        throw `${d} is not Date()`;
-      }
-      dd = new Date(d - d.getTimezoneOffset() * 1000 * 60);
-      ymd = dd.toISOString().slice(0, 10);
-      re = /(\d\d:\d\d:\d\d) GMT([-+]\d+)/gm;
-      s = re.exec(d.toString());
-      return `${ymd}T${s[1]}${s[2].slice(0, 3)}:${s[2].slice(3, 5)}`;
-    };
-    getLast24h = function() {
-      var id, ref, results, s;
-      ref = window.fn.sensors;
-      results = [];
-      for (id in ref) {
-        s = ref[id];
-        results.push(((id, s) => {
-          var from, to, url;
-          //...
-          to = new Date();
-          from = new Date(to - 24 * 60 * 60 * 1000);
-          url = `https://${CITY}.pulse.eco/rest/dataRaw?` + `sensorId=${id}&` + `from=${encodeURIComponent(toDTM(from))}&` + `to=${encodeURIComponent(toDTM(to))}`;
-          // console.log url
-          return $.ajax({
-            url: url,
-            method: 'GET',
-            username: USERNAME,
-            password: PASSWORD,
-            dataType: "json",
-            headers: {
-              "Authorization": "Basic " + btoa(USERNAME + ":" + PASSWORD)
-            }
-          }).done((d) => {
-            var marker, params, pos;
-            // console.log s
-            // window.fn.sensors[id].data = data
-            s.data = d;
-            // here we should create the marker for sensor...
-            pos = parsePos(s.position);
-            // filter unique type/param values
-            params = s.data.map(function(x) {
-              return x.type;
-            }).filter(function(v, i, self) {
-              return self.indexOf(v) === i;
-            });
-            return marker = L.marker(pos).addTo(map).bindPopup(`<p>Sensor: ${s.name}</p>\n<p>Parameters: ${params.join(', ')}</p>`);
-          });
-        })(id, s));
-      }
-      return results;
-    };
-    get24h = function() {
-      // instead use loop over sensors & retreive data
-      // when tested put this code in a separate function
-      return $.ajax({
-        url: `https://${CITY}.pulse.eco/rest/data24h`,
-        method: 'GET',
-        username: USERNAME,
-        password: PASSWORD
-      }).done(function(d) {
-        var data, id, marker, params, pos, ref, ref1, results, s;
-        ref = window.fn.sensors;
-        // console.log d
-        // we assume we have loaded sensors data
-        for (id in ref) {
-          s = ref[id];
-          data = d.filter(function(x) {
-            return x.sensorId === id;
-          });
-          window.fn.sensors[id].data = data;
-        }
-        console.log(window.fn.sensors);
-        ref1 = window.fn.sensors;
-        // here we should create the marker for sensor...
-        results = [];
-        for (id in ref1) {
-          s = ref1[id];
+getMarkerIcon = function(level) {
+  level = Math.round(level);
+  switch (false) {
+    case !((0 <= level && level < 50)):
+      return 1;
+    case !((50 <= level && level < 100)):
+      return 2;
+    case !((100 <= level && level < 250)):
+      return 3;
+    case !((250 <= level && level < 350)):
+      return 4;
+    case !((350 <= level && level < 430)):
+      return 5;
+    case !((430 <= level && level < 2000)):
+      return 5;
+    default:
+      return 0;
+  }
+};
+
+window.fn.markerIcons = [
+  L.icon({
+    iconUrl: 'css/images/marker-icon-lgray.png',
+    shadowUrl: 'css/images/marker-shadow.png',
+    iconSize: [25,
+  41],
+    shadowSize: [41,
+  41],
+    iconAnchor: [12,
+  41],
+    popupAnchor: [0,
+  -43]
+  }),
+  L.icon({
+    iconUrl: 'css/images/marker-icon-green.png',
+    shadowUrl: 'css/images/marker-shadow.png',
+    iconSize: [25,
+  41],
+    shadowSize: [41,
+  41],
+    iconAnchor: [12,
+  41],
+    popupAnchor: [0,
+  -43]
+  }),
+  L.icon({
+    iconUrl: 'css/images/marker-icon-yellow.png',
+    shadowUrl: 'css/images/marker-shadow.png',
+    iconSize: [25,
+  41],
+    shadowSize: [41,
+  41],
+    iconAnchor: [12,
+  41],
+    popupAnchor: [0,
+  -43]
+  }),
+  L.icon({
+    iconUrl: 'css/images/marker-icon-orange.png',
+    shadowUrl: 'css/images/marker-shadow.png',
+    iconSize: [25,
+  41],
+    shadowSize: [41,
+  41],
+    iconAnchor: [12,
+  41],
+    popupAnchor: [0,
+  -43]
+  }),
+  L.icon({
+    iconUrl: 'css/images/marker-icon-red.png',
+    shadowUrl: 'css/images/marker-shadow.png',
+    iconSize: [25,
+  41],
+    shadowSize: [41,
+  41],
+    iconAnchor: [12,
+  41],
+    popupAnchor: [0,
+  -43]
+  }),
+  L.icon({
+    iconUrl: 'css/images/marker-icon-violet.png',
+    shadowUrl: 'css/images/marker-shadow.png',
+    iconSize: [25,
+  41],
+    shadowSize: [41,
+  41],
+    iconAnchor: [12,
+  41],
+    popupAnchor: [0,
+  -43]
+  })
+];
+
+renderSensors = function() {
+  var CENTER, CITY, PASSWORD, USERNAME, get24h, getLast24h, getSensors, map, parsePos, renderMap, toDTM;
+  
+  // MAP
+
+  // Leaflet MAP
+  map = null;
+  CENTER = [41.99249998, 21.42361109];
+  CITY = 'skopje';
+  USERNAME = "atonevski";
+  PASSWORD = "pv1530kay";
+  parsePos = function(s) {
+    return s.split(/\s*,\s*/).map(function(v) {
+      return parseFloat(v);
+    });
+  };
+  toDTM = function(d) {
+    var dd, re, s, ymd;
+    if (!(d instanceof Date)) {
+      throw `${d} is not Date()`;
+    }
+    dd = new Date(d - d.getTimezoneOffset() * 1000 * 60);
+    ymd = dd.toISOString().slice(0, 10);
+    re = /(\d\d:\d\d:\d\d) GMT([-+]\d+)/gm;
+    s = re.exec(d.toString());
+    return `${ymd}T${s[1]}${s[2].slice(0, 3)}:${s[2].slice(3, 5)}`;
+  };
+  getLast24h = function() {
+    var id, ref, results, s;
+    ref = window.fn.sensors;
+    results = [];
+    for (id in ref) {
+      s = ref[id];
+      results.push(((id, s) => {
+        var from, to, url;
+        //...
+        to = new Date();
+        from = new Date(to - 24 * 60 * 60 * 1000);
+        url = `https://${CITY}.pulse.eco/rest/dataRaw?` + `sensorId=${id}&` + `from=${encodeURIComponent(toDTM(from))}&` + `to=${encodeURIComponent(toDTM(to))}`;
+        // console.log url
+        return $.ajax({
+          url: url,
+          method: 'GET',
+          username: USERNAME,
+          password: PASSWORD,
+          dataType: "json",
+          headers: {
+            "Authorization": "Basic " + btoa(USERNAME + ":" + PASSWORD)
+          }
+        }).done((d) => {
+          var acc, avg, curr, html, i, j, len, marker, max, min, p, paramData, params, pos, ref1, t, typeInfo, v;
+          // console.log s
+          // window.fn.sensors[id].data = data
+          s.data = d;
+          // here we should create the marker for sensor...
           pos = parsePos(s.position);
           // filter unique type/param values
           params = s.data.map(function(x) {
@@ -193,87 +255,150 @@ window.fn.loadSensors = function() {
           }).filter(function(v, i, self) {
             return self.indexOf(v) === i;
           });
-          results.push(marker = L.marker(pos).addTo(map).bindPopup(`<p>Sensor: ${s.name}</p>\n<p>Parameters: ${params.join(', ')}</p>`));
-        }
-        return results;
-      });
-    };
-    getSensors = function() {
-      return $.ajax({
-        url: `https://${CITY}.pulse.eco/rest/sensor`,
-        method: 'GET',
-        username: USERNAME,
-        password: PASSWORD
-      }).done(function(d) {
-        var j, len, s;
-// console.log d
-        for (j = 0, len = d.length; j < len; j++) {
-          s = d[j];
-          if (window.fn.sensors[s.sensorId] != null) {
-            window.fn.sensors[s.sensorId].position = s.position;
-            window.fn.sensors[s.sensorId].description = s.description;
-            window.fn.sensors[s.sensorId].coments = s.coments;
-          } else {
-            window.fn.sensors[s.sensorId] = s;
-            window.fn.sensors[s.sensorId].name = s.description;
+          typeInfo = {};
+          for (j = 0, len = params.length; j < len; j++) {
+            p = params[j];
+            paramData = s.data.filter(function(v) {
+              return v.type === p && (v.value != null);
+            }).map(function(x) {
+              return parseInt(x.value);
+            });
+            // console.log p, paramData
+            curr = paramData.slice(-1)[0];
+            min = paramData.reduce(function(a, v) {
+              if (v == null) {
+                return a;
+              } else {
+                if (v < a) {
+                  return v;
+                } else {
+                  return a;
+                }
+              }
+            }, paramData[0]);
+            max = paramData.reduce(function(a, v) {
+              if (v == null) {
+                return a;
+              } else {
+                if (v > a) {
+                  return v;
+                } else {
+                  return a;
+                }
+              }
+            }, paramData[0]);
+            acc = paramData.reduce(function(a, v) {
+              if (v == null) {
+                return a;
+              } else {
+                return {
+                  sum: a.sum + v,
+                  count: a.count + 1
+                };
+              }
+            }, {
+              sum: 0,
+              count: 0
+            });
+            avg = acc.count > 0 ? acc.sum / acc.count : null;
+            typeInfo[p] = {
+              curr: curr,
+              min: min,
+              max: max,
+              avg: avg,
+              data: paramData
+            };
           }
+          s.params = params;
+          s.typeInfo = typeInfo;
+          // console.log s
+          html = `<table>\n  <caption>${s.name}</captio>\n  <thead><tr>\n    <th>parameter</th>\n    <th class='center'>current</th>\n    <th class='center'>min</th>\n    <th class='center'>max</th>\n    <th class='center'>avg</th>\n    <th class='center'>samples</th>\n  </tr></thead>\n  <tbody>`;
+          ref1 = s.typeInfo;
+          for (t in ref1) {
+            v = ref1[t];
+            html += `<tr>\n  <td align='left'>${t}</td>\n  <td align='center'>${v.curr}</td>\n  <td align='center'>${v.min}</td>\n  <td align='center'>${v.max}</td>\n  <td align='center'>${v.avg.toFixed(2)}</td>\n  <td align='center'>${v.data.length}</td>\n</tr>`;
+          }
+          html += "</tbody>\n</table>";
+          if (s.data.length > 0) {
+            html += `<p>\n  Interval:\n    <span style='font-size: 75%'>${s.data[0].stamp.slice(0, 19)} &ndash;\n     ${s.data.slice(-1)[0].stamp.slice(0, 19)}</span>\n</p>`;
+          }
+          i = (s.typeInfo['pm10'] != null) && (s.typeInfo['pm10'].curr != null) ? getMarkerIcon(s.typeInfo.pm10.curr) : 0;
+          return marker = L.marker(pos, {
+            icon: window.fn.markerIcons[i]
+          }).addTo(map).bindPopup(html);
+        });
+      })(id, s));
+    }
+    return results;
+  };
+  get24h = function() {
+    // instead use loop over sensors & retreive data
+    // when tested put this code in a separate function
+    return $.ajax({
+      url: `https://${CITY}.pulse.eco/rest/data24h`,
+      method: 'GET',
+      username: USERNAME,
+      password: PASSWORD
+    }).done(function(d) {
+      var data, id, marker, params, pos, ref, ref1, results, s;
+      ref = window.fn.sensors;
+      // console.log d
+      // we assume we have loaded sensors data
+      for (id in ref) {
+        s = ref[id];
+        data = d.filter(function(x) {
+          return x.sensorId === id;
+        });
+        window.fn.sensors[id].data = data;
+      }
+      console.log(window.fn.sensors);
+      ref1 = window.fn.sensors;
+      // here we should create the marker for sensor...
+      results = [];
+      for (id in ref1) {
+        s = ref1[id];
+        pos = parsePos(s.position);
+        // filter unique type/param values
+        params = s.data.map(function(x) {
+          return x.type;
+        }).filter(function(v, i, self) {
+          return self.indexOf(v) === i;
+        });
+        results.push(marker = L.marker(pos).addTo(map).bindPopup(`<p>Sensor: ${s.name}</p>\n<p>Parameters: ${params.join(', ')}</p>`));
+      }
+      return results;
+    });
+  };
+  getSensors = function() {
+    return $.ajax({
+      url: `https://${CITY}.pulse.eco/rest/sensor`,
+      method: 'GET',
+      username: USERNAME,
+      password: PASSWORD
+    }).done(function(d) {
+      var j, len, s, sensors;
+// console.log d
+      for (j = 0, len = d.length; j < len; j++) {
+        s = d[j];
+        if (window.fn.sensors[s.sensorId] != null) {
+          window.fn.sensors[s.sensorId].position = s.position;
+          window.fn.sensors[s.sensorId].description = s.description;
+          window.fn.sensors[s.sensorId].coments = s.coments;
+        } else {
+          window.fn.sensors[s.sensorId] = s;
+          window.fn.sensors[s.sensorId].name = s.description;
         }
-        sensors = d;
-        // get24h()
-        return getLast24h();
-      });
-    };
-    // for id, s of  window.fn.sensors
-    //   pos = parsePos s.position
-    //   marker = L.marker pos
-    //     .addTo map
-    //     .bindPopup "<p>Sensor: #{ s.name }</p>"
-    renderMap = function() {
-      map = L.map('map-id').setView(CENTER, 12);
-      // L.tileLayer 'http://{s}.tile.osm.org/{z}/{x}/{y}.png', {}
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map);
-      console.log(`base64: ${btoa('abc')}`);
-      return getSensors();
-    };
-    return renderMap();
-  });
+      }
+      sensors = d;
+      // get24h()
+      return getLast24h();
+    });
+  };
+  renderMap = function() {
+    map = L.map('map-id').setView(CENTER, 12);
+    // L.tileLayer 'http://{s}.tile.osm.org/{z}/{x}/{y}.png', {}
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map);
+    return getSensors();
+  };
+  return renderMap();
 };
-
-// map = null
-// CENTER = [ 41.99249998, 21.42361109 ]
-// CITY = 'skopje'
-// USERNAME = "atonevski"
-// PASSWORD = "pv1530kay"
-// sensors = []
-
-// parsePos = (s) ->
-//   s.split /\s*,\s*/
-//     .map (v) -> parseFloat(v)
-
-// getSensors = () ->
-//   $.ajax
-//     url: "https://#{ CITY }.pulse.eco/rest/sensor"
-//     method: 'GET'
-//     username: USERNAME
-//     password: PASSWORD
-//   .done (d) ->
-//     console.log d
-//     sensors = d
-//     for s in sensors
-//       pos = parsePos s.position
-//       marker = L.marker pos
-//         .addTo map
-//         .bindPopup "<p>Sensor: #{ s.description }</p>"
-
-// renderMap = () ->
-//   map = L.map 'map-id'
-//          .setView CENTER, 12
-
-//   L.tileLayer 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { }
-//   # L.tileLayer 'http://{s}.tile.osm.org/{z}/{x}/{y}.png', {}
-//   .addTo @map
-
-//   console.log "base64: #{ btoa 'abc' }"
-//   getSensors()
-
-// renderMap()
