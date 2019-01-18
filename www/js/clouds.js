@@ -2,31 +2,40 @@
 
 // clouds.coffee: map with clouds
 
-var map, renderClouds;
+var renderClouds;
+
+window.fn.cloudMap = null;
 
 window.fn.loadClouds = function() {
   var content, menu;
   content = $('#content')[0];
   menu = $('#menu')[0];
-  return content.load('views/clouds.html').then(menu.close.bind(menu)).then(renderClouds);
+  if (window.fn.selected === 'clouds') {
+    menu.close.bind(menu)();
+    return;
+  }
+  return content.load('views/clouds.html').then(menu.close.bind(menu)).then(function() {
+    $('ons-page#clouds-page')[0].addEventListener('destroy', function() {
+      window.fn.cloudMap.remove();
+      return console.log('destroying clouds page...');
+    });
+    $('ons-page#clouds-page')[0].addEventListener('init', function() {
+      return console.log('init clouds page...');
+    });
+    $('ons-page#clouds-page')[0].addEventListener('hide', function() {
+      return console.log('hide clouds page...');
+    });
+    return $('ons-page#clouds-page')[0].addEventListener('show', function() {
+      return console.log('show clouds page...');
+    });
+  }).then(renderClouds);
 };
 
-map = null;
-
 renderClouds = function() {
-  var APPID, baseMaps, city, clouds, layerControl, osm, overlayMaps;
-  $('ons-page#clouds-page')[0].addEventListener('destroy', function() {
-    console.log('destroying clouds page...');
-    if (map != null) {
-      map.remove();
-      return map = null;
-    }
-  });
-  $('ons-page#clouds-page')[0].addEventListener('init', function() {
-    return console.log('init clouds...');
-  });
-  $('ons-page#clouds-page')[0].addEventListener('hide', function() {
-    return console.log('hide clouds...');
+  var APPID, baseMaps, city, clouds, layerControl, oldMap, osm, overlayMaps, precip;
+  window.fn.selected = 'clouds';
+  $('[id$="_opt]"').each(function(i) {
+    return console.log(this.getAttribute('tappable'));
   });
   // OWM api id
   APPID = '74caac32fcc2d61b715c249e789a875e';
@@ -35,16 +44,19 @@ renderClouds = function() {
     attribution: 'some attribution'
   });
   // id: 'mapbox.streets'
-  map = L.map("map-id", {
+  oldMap = window.fn.cloudMap;
+  window.fn.cloudMap = L.map("cloud-map-id", {
     center: new L.LatLng(42, 21.43),
     zoom: 6,
     layers: [osm]
   });
-  
   // osm.addTo $scope.map
   clouds = L.OWM.clouds({
-    showLegend: false,
+    showLegend: true,
     opacity: 0.65,
+    appId: APPID
+  });
+  precip = L.OWM.precipitation({
     appId: APPID
   });
   city = L.OWM.current({
@@ -55,11 +67,11 @@ renderClouds = function() {
     "OSM Standard": osm
   };
   overlayMaps = {
-    "Clouds": clouds,
-    "Cities": city
+    Clouds: clouds,
+    Precipitation: precip
   };
-  layerControl = L.control.layers(baseMaps, overlayMaps).addTo(map);
-  return map.on('locationerror', function(e) {
+  layerControl = L.control.layers(baseMaps, overlayMaps).addTo(window.fn.cloudMap);
+  return window.fn.cloudMap.on('locationerror', function(e) {
     return console.log("Leaflet loc err: ", e);
   });
 };

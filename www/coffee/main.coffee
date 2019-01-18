@@ -1,5 +1,7 @@
 window.fn = { }
 
+window.fn.selected = 'home'
+
 window.fn.open = () ->
   menu = $('#menu')[0]
   menu.open()
@@ -26,6 +28,8 @@ mph2kmph = (m) -> m * 1.609344
 mps2kmph = (m) -> 3600.0 * m / 1000
 
 renderHome = () ->
+  window.fn.selected = 'home'
+  
   KEY = '6376c1cdba2fa461f346e9a27524406d'
   LAT = 42
   LNG = 21.43
@@ -227,5 +231,3 @@ renderHome = () ->
 ons.ready () ->
   # cordova stuff
   fn.loadHome()
-
-

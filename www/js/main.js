@@ -3,6 +3,8 @@ var mph2kmph, mps2kmph, renderHome;
 
 window.fn = {};
 
+window.fn.selected = 'home';
+
 window.fn.open = function() {
   var menu;
   menu = $('#menu')[0];
@@ -37,6 +39,7 @@ mps2kmph = function(m) {
 
 renderHome = function() {
   var KEY, LAT, LNG, url;
+  window.fn.selected = 'home';
   KEY = '6376c1cdba2fa461f346e9a27524406d';
   LAT = 42;
   LNG = 21.43;

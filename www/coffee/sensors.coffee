@@ -36,6 +36,10 @@ window.fn.loadSensors = () ->
   content = $('#content')[0]
   menu = $('#menu')[0]
 
+  if window.fn.selected is 'sensors'
+    menu.close.bind(menu)()
+    return
+
   content.load 'views/sensors.html'
          .then menu.close.bind(menu)
          .then () ->
@@ -112,19 +116,8 @@ window.fn.markerIcons = [
 map = null
 
 renderSensors = () ->
-  #
-  $('ons-page#sensors-page')[0].addEventListener 'destroy', () ->
-    console.log 'destroying sensors page...'
-    if map?
-      map.remove()
-      map = null
-
-  $('ons-page#sensors-page')[0].addEventListener 'init', () ->
-    console.log 'init sensors...'
-
-  $('ons-page#sensors-page')[0].addEventListener 'hide', () ->
-    console.log 'hide sensors...'
-
+  window.fn.selected = 'sensors'
+  
   CENTER = [ 41.99249998, 21.42361109 ]
   CITY = 'skopje'
   USERNAME = "atonevski"

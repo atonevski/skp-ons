@@ -27,19 +27,19 @@
   <ons-splitter-side id='menu' side='left' collapse swipeable>
     <ons-page>
       <ons-list>
-        <ons-list-item onclick="fn.loadHome()" tappable>
+        <ons-list-item id='home-opt' onclick="fn.loadHome()" tappable>
           Home
         </ons-list-item>
-        <ons-list-item onclick="fn.loadSensors()" tappable>
+        <ons-list-item id='sensors-opt' onclick="fn.loadSensors()" tappable>
           Sensors
         </ons-list-item>
-        <ons-list-item onclick="fn.load('views/measurements.html')" tappable>
+        <ons-list-item id='mesr-opt' onclick="fn.load('views/measurements.html')" tappable>
           Measurements
         </ons-list-item>
-        <ons-list-item onclick="fn.loadClouds()" tappable>
+        <ons-list-item id='clouds-opt' onclick="fn.loadClouds()" tappable>
           Clouds
         </ons-list-item>
-        <ons-list-item onclick="fn.load('views/about.html')" tappable>
+        <ons-list-item id='about-opt' onclick="fn.load('views/about.html')" tappable>
           About
         </ons-list-item>
       </ons-list>
