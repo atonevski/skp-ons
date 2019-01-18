@@ -108,12 +108,23 @@ window.fn.markerIcons = [
     iconAnchor: [12, 41]
     popupAnchor: [0, -43]})
 ]
+
+map = null
+
 renderSensors = () ->
   #
-  # MAP
-  #
-  # Leaflet MAP
-  map = null
+  $('ons-page#sensors-page')[0].addEventListener 'destroy', () ->
+    console.log 'destroying sensors page...'
+    if map?
+      map.remove()
+      map = null
+
+  $('ons-page#sensors-page')[0].addEventListener 'init', () ->
+    console.log 'init sensors...'
+
+  $('ons-page#sensors-page')[0].addEventListener 'hide', () ->
+    console.log 'hide sensors...'
+
   CENTER = [ 41.99249998, 21.42361109 ]
   CITY = 'skopje'
   USERNAME = "atonevski"

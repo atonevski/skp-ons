@@ -3,7 +3,7 @@
 // MAP
 
 // Leaflet MAP
-var getMarkerIcon, renderSensors;
+var getMarkerIcon, map, renderSensors;
 
 window.fn.sensors = {
   "1002": {
@@ -193,13 +193,24 @@ window.fn.markerIcons = [
   })
 ];
 
-renderSensors = function() {
-  var CENTER, CITY, PASSWORD, USERNAME, get24h, getLast24h, getSensors, map, parsePos, renderMap, toDTM;
-  
-  // MAP
+map = null;
 
-  // Leaflet MAP
-  map = null;
+renderSensors = function() {
+  var CENTER, CITY, PASSWORD, USERNAME, get24h, getLast24h, getSensors, parsePos, renderMap, toDTM;
+  
+  $('ons-page#sensors-page')[0].addEventListener('destroy', function() {
+    console.log('destroying sensors page...');
+    if (map != null) {
+      map.remove();
+      return map = null;
+    }
+  });
+  $('ons-page#sensors-page')[0].addEventListener('init', function() {
+    return console.log('init sensors...');
+  });
+  $('ons-page#sensors-page')[0].addEventListener('hide', function() {
+    return console.log('hide sensors...');
+  });
   CENTER = [41.99249998, 21.42361109];
   CITY = 'skopje';
   USERNAME = "atonevski";
