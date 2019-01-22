@@ -646,7 +646,7 @@ renderPlay = function() {
     }).done((d) => {
       data = d;
       stamps = data.map(function(x) {
-        return x.stamp.slice(0, 13);
+        return x.stamp.slice(0, 15);
       }).filter(function(v, i, self) {
         return self.indexOf(v) === i;
       });
@@ -685,7 +685,7 @@ renderPlay = function() {
   };
   renderMap = function() {
     var i, ll;
-    window.fn.playMap = L.map('map-id').setView(CENTER, 12);
+    window.fn.playMap = L.map('play-map-id').setView(CENTER, 12);
     // L.tileLayer 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { }
     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {}).addTo(window.fn.playMap);
     // added for lat/lngs
@@ -707,7 +707,8 @@ renderPlay = function() {
     return getSensors();
   };
   renderMap();
-  return console.log("Darkgreen:", hsl2rgb(120, 1, 0.2));
+  console.log("Darkgreen:", hsl2rgb(1 / 3, 1, 0.2));
+  return console.log("Greenyellow:", hsl2rgb(1 / 3, 1, 0.59));
 };
 
 // Darkgreen: rgb(0, 100, 0) hsl(120, 100%, 20%)

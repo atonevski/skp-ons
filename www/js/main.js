@@ -98,5 +98,10 @@ renderHome = function() {
 
 ons.ready(function() {
   // cordova stuff
-  return fn.loadHome();
+  fn.loadHome();
+  if (typeof cordova === "undefined" || cordova === null) {
+    return ons.notification.toast("Cordova not loaded", {
+      timeout: 5000
+    });
+  }
 });

@@ -231,3 +231,5 @@ renderHome = () ->
 ons.ready () ->
   # cordova stuff
   fn.loadHome()
+  unless cordova?
+    ons.notification.toast "Cordova not loaded", timeout: 5000

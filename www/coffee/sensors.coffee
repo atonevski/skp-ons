@@ -295,7 +295,7 @@ renderSensors = () ->
       getLast24h()
 
   renderMap = () ->
-    window.fn.sensorMap = L.map 'map-id'
+    window.fn.sensorMap = L.map 'sensors-map-id'
           .setView CENTER, 12
 
     # L.tileLayer 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { }

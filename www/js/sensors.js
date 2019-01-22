@@ -398,7 +398,7 @@ renderSensors = function() {
     });
   };
   renderMap = function() {
-    window.fn.sensorMap = L.map('map-id').setView(CENTER, 12);
+    window.fn.sensorMap = L.map('sensors-map-id').setView(CENTER, 12);
     // L.tileLayer 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { }
     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {}).addTo(window.fn.sensorMap);
     // added for lat/lngs

@@ -331,7 +331,7 @@ renderPlay = () ->
     .done (d) =>
       data = d
       stamps = data
-                .map (x) -> x.stamp[0..12]
+                .map (x) -> x.stamp[0..14]
                 .filter (v, i, self) -> self.indexOf(v) is i
       console.log 'stamps:', stamps
 
@@ -364,7 +364,7 @@ renderPlay = () ->
             """
 
   renderMap = () ->
-    window.fn.playMap = L.map 'map-id'
+    window.fn.playMap = L.map 'play-map-id'
           .setView CENTER, 12
 
     # L.tileLayer 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { }
@@ -388,7 +388,8 @@ renderPlay = () ->
     getSensors()
 
   renderMap()
-  console.log "Darkgreen:", hsl2rgb(120, 1, 0.2)
+  console.log "Darkgreen:", hsl2rgb(1/3, 1, 0.2)
+  console.log "Greenyellow:", hsl2rgb(1/3, 1, 0.59)
 
 # Darkgreen: rgb(0, 100, 0) hsl(120, 100%, 20%)
 # Green: rgb(0, 128, 0) hsl(120, 100%, 25%)
