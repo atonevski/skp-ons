@@ -3,7 +3,9 @@
 // MAP
 
 // Leaflet MAP
-var getMarkerIcon, map, renderSensors;
+var getMarkerIcon, renderSensors;
+
+window.fn.sensorMap = null;
 
 window.fn.sensors = {
   "1002": {
@@ -197,8 +199,6 @@ window.fn.markerIcons = [
   })
 ];
 
-map = null;
-
 renderSensors = function() {
   var CENTER, CITY, PASSWORD, USERNAME, get24h, getLast24h, getSensors, parsePos, renderMap, toDTM;
   window.fn.selected = 'sensors';
@@ -327,7 +327,7 @@ renderSensors = function() {
           i = (s.typeInfo['pm10'] != null) && (s.typeInfo['pm10'].curr != null) ? getMarkerIcon(s.typeInfo.pm10.curr) : 0;
           return marker = L.marker(pos, {
             icon: window.fn.markerIcons[i]
-          }).addTo(map).bindPopup(html);
+          }).addTo(window.fn.sensorMap).bindPopup(html);
         });
       })(id, s));
     }
@@ -353,8 +353,9 @@ renderSensors = function() {
         });
         window.fn.sensors[id].data = data;
       }
-      console.log(window.fn.sensors);
       ref1 = window.fn.sensors;
+      // console.log window.fn.sensors
+
       // here we should create the marker for sensor...
       results = [];
       for (id in ref1) {
@@ -366,7 +367,7 @@ renderSensors = function() {
         }).filter(function(v, i, self) {
           return self.indexOf(v) === i;
         });
-        results.push(marker = L.marker(pos).addTo(map).bindPopup(`<p>Sensor: ${s.name}</p>\n<p>Parameters: ${params.join(', ')}</p>`));
+        results.push(marker = L.marker(pos).addTo(window.fn.sensorMap).bindPopup(`<p>Sensor: ${s.name}</p>\n<p>Parameters: ${params.join(', ')}</p>`));
       }
       return results;
     });
@@ -397,9 +398,14 @@ renderSensors = function() {
     });
   };
   renderMap = function() {
-    map = L.map('map-id').setView(CENTER, 12);
-    // L.tileLayer 'http://{s}.tile.osm.org/{z}/{x}/{y}.png', {}
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(map);
+    window.fn.sensorMap = L.map('map-id').setView(CENTER, 12);
+    // L.tileLayer 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { }
+    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {}).addTo(window.fn.sensorMap);
+    // added for lat/lngs
+    window.fn.sensorMap.on('click', function(e) {
+      ons.notification.alert(`Pos: (${e.latlng.lat}, ${e.latlng.lng})`);
+      return console.log(`Pos: (${e.latlng.lat}, ${e.latlng.lng})`);
+    });
     return getSensors();
   };
   return renderMap();

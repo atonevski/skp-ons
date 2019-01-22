@@ -48,12 +48,24 @@ renderClouds = () ->
   }
 
   # osm.addTo $scope.map
-  clouds  = L.OWM.clouds { showLegend: true, opacity: 0.65, appId: APPID }
-  precip  = L.OWM.precipitation { appId: APPID }
-  city    = L.OWM.current {intervall: 15, lang: 'mk'}
+  # clouds  = L.OWM.clouds { showLegend: true, opacity: 0.65, appId: APPID }
+  # precip  = L.OWM.precipitation { appId: APPID }
+  # city    = L.OWM.current {intervall: 15, lang: 'mk'}
 
   baseMaps      = { "OSM Standard": osm }
-  overlayMaps   = { Clouds: clouds, Precipitation: precip }
+  overlayMaps   =
+    Clouds: L.OWM.clouds showLegend: true, opacity: 0.75, appId: APPID
+    'Clouds Classic': L.OWM.cloudsClassic appId: APPID, opacity: 0.20
+    Precipitation: L.OWM.precipitation appId: APPID, opacity: 0.75
+    'Precipitation Classic': L.OWM.precipitationClassic appId: APPID, opacity: 0.35
+    Rain: L.OWM.rain appId: APPID, opacity: 0.5
+    'Rain Classic': L.OWM.rainClassic appId: APPID, opacity: 0.35
+    Snow: L.OWM.snow appId: APPID
+    Pressure: L.OWM.pressure appId: APPID, opacity: 0.45
+    'Pressure Contour': L.OWM.pressureContour appId: APPID
+    Temperature: L.OWM.temperature appId: APPID, opacity: 0.33
+    Wind: L.OWM.wind appId: APPID, opacity: 0.20
+
   layerControl  = L.control.layers(baseMaps, overlayMaps).addTo(window.fn.cloudMap)
 
 

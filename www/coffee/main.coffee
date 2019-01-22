@@ -38,7 +38,7 @@ renderHome = () ->
     url: url
     method: 'GET'
   .done (d) ->
-    console.log d
+    # console.log d
     window.fn.weather = d
     $('p#temp').html "#{ Math.round d.currently.temperature }&deg;C"
 

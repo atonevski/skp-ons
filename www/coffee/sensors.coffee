@@ -3,6 +3,8 @@
 #
 # Leaflet MAP
 
+window.fn.sensorMap = null
+
 window.fn.sensors =
   "1002": { name: 'Миладиновци' }
   "11888f3a-bc5e-4a0c-9f27-702984decedf": { name: 'МЗТ' }
@@ -113,7 +115,6 @@ window.fn.markerIcons = [
     popupAnchor: [0, -43]})
 ]
 
-map = null
 
 renderSensors = () ->
   window.fn.selected = 'sensors'
@@ -237,7 +238,7 @@ renderSensors = () ->
               else
                 0
           marker = L.marker pos, { icon: window.fn.markerIcons[i] }
-            .addTo map
+            .addTo window.fn.sensorMap
             .bindPopup html
 
   get24h = () ->
@@ -255,7 +256,7 @@ renderSensors = () ->
         data = d.filter (x) -> x.sensorId is id
         window.fn.sensors[id].data = data
 
-      console.log window.fn.sensors
+      # console.log window.fn.sensors
 
       # here we should create the marker for sensor...
       for id, s of  window.fn.sensors
@@ -265,7 +266,7 @@ renderSensors = () ->
                   .map (x) -> x.type
                   .filter (v, i, self) -> self.indexOf(v) is i
         marker = L.marker pos
-          .addTo map
+          .addTo window.fn.sensorMap
           .bindPopup """
             <p>Sensor: #{ s.name }</p>
             <p>Parameters: #{ params.join(', ') }</p>
@@ -294,12 +295,17 @@ renderSensors = () ->
       getLast24h()
 
   renderMap = () ->
-    map = L.map 'map-id'
+    window.fn.sensorMap = L.map 'map-id'
           .setView CENTER, 12
 
-    L.tileLayer 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { }
-    # L.tileLayer 'http://{s}.tile.osm.org/{z}/{x}/{y}.png', {}
-    .addTo map
+    # L.tileLayer 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { }
+    L.tileLayer 'http://{s}.tile.osm.org/{z}/{x}/{y}.png', {}
+    .addTo window.fn.sensorMap
+
+    # added for lat/lngs
+    window.fn.sensorMap.on 'click', (e) ->
+      ons.notification.alert "Pos: (#{ e.latlng.lat }, #{ e.latlng.lng })"
+      console.log "Pos: (#{ e.latlng.lat }, #{ e.latlng.lng })"
 
     getSensors()
 

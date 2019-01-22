@@ -49,7 +49,7 @@ renderHome = function() {
     method: 'GET'
   }).done(function(d) {
     var item, list;
-    console.log(d);
+    // console.log d
     window.fn.weather = d;
     $('p#temp').html(`${Math.round(d.currently.temperature)}&deg;C`);
     list = $('ons-list#current-values');
