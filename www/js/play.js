@@ -2,7 +2,7 @@
 
 // play.coffee: play last 24h pm10 measurements
 
-var avgs, data, frameCounter, getValueColor, hsl2rgb, latlngs, polys, r2r, renderPlay, rgb2hex, stamps;
+var avgs, data, frameCounter, getValueColor, hsl2rgb, idInterval, latlngs, polys, r2r, renderPlay, rgb2hex, stamps, tmInterval;
 
 window.fn.playMap = null;
 
@@ -584,10 +584,6 @@ latlngs = [ //0: Бутел
   21.648219192559196]]
 ];
 
-polys = [];
-
-frameCounter = 0;
-
 window.fn.loadPlay = function() {
   var content, menu;
   content = $('#content')[0];
@@ -606,6 +602,14 @@ data = null;
 stamps = [];
 
 avgs = {};
+
+polys = [];
+
+frameCounter = 0;
+
+tmInterval = 0;
+
+idInterval = null;
 
 
 renderPlay = function() {
@@ -648,14 +652,13 @@ renderPlay = function() {
         "Authorization": "Basic " + btoa(USERNAME + ":" + PASSWORD)
       }
     }).done((d) => {
-      var g, j, len, m, s;
+      var fnInterval, g, j, len, m, s;
       data = d;
       stamps = data.map(function(x) {
         return x.stamp.slice(0, 15);
       }).filter(function(v, i, self) {
         return self.indexOf(v) === i;
       });
-      console.log('stamps:', stamps);
       avgs = {};
       for (j = 0, len = data.length; j < len; j++) {
         m = data[j];
@@ -673,10 +676,39 @@ renderPlay = function() {
         avgs[s][g].sum += m.value * 1;
         avgs[s][g].count++;
       }
-      return console.log(avgs);
+      // for every stamp, for every group calc avg typeVal...
+      frameCounter = 0;
+      tmInterval = Math.ceil(30000 / stamps.length);
+      fnInterval = function() {
+        var avg, k, len1, p, results, v;
+        avg = avgs[stamps[frameCounter]];
+        if (!avg) {
+          throw "avg undefined";
+        }
+        for (g in avg) {
+          v = avg[g];
+          if (v != null) {
+            polys[g].setStyle({
+              color: getValueColor(v.sum / v.count)
+            });
+          }
+        }
+        frameCounter++;
+        if (frameCounter >= stamps.length) {
+          clearInterval(idInterval);
+          console.log("finished play");
+          results = [];
+          for (k = 0, len1 = polys.length; k < len1; k++) {
+            p = polys[k];
+            results.push(p.remove());
+          }
+          return results;
+        }
+      };
+      idInterval = setInterval(fnInterval, tmInterval);
+      return console.log(`started play, frame duration ${tmInterval}ms`);
     });
   };
-  // for every stamp, for every group calc avg typeVal...
   getSensors = function() {
     return $.ajax({
       url: `https://${CITY}.pulse.eco/rest/sensor`,
@@ -684,9 +716,8 @@ renderPlay = function() {
       username: USERNAME,
       password: PASSWORD
     }).done(function(d) {
-      var j, len, marker, pos, results, s;
+      var j, len, s;
 // console.log d
-      results = [];
       for (j = 0, len = d.length; j < len; j++) {
         s = d[j];
         if (window.fn.playSensors[s.sensorId] != null) {
@@ -698,55 +729,40 @@ renderPlay = function() {
           window.fn.playSensors[s.sensorId].name = s.description;
           ons.notification.toast(`Unknown sensor ${s.sensorId}`);
         }
-        pos = parsePos(s.position);
-        results.push(marker = L.marker(pos, {
-          icon: window.fn.markerIcons[0]
-        }).addTo(window.fn.playMap).bindPopup(`<p>Sensor: ${window.fn.playSensors[s.sensorId].name}</p>\n<p>Group: ${window.fn.playSensors[s.sensorId].group}`));
       }
-      return results;
+      // pos = parsePos s.position
+      // marker = L.marker pos, { icon: window.fn.markerIcons[0] }
+      //     .addTo window.fn.playMap
+      //     .bindPopup """
+      //       <p>Sensor: #{ window.fn.playSensors[s.sensorId].name }</p>
+      //       <p>Group: #{ window.fn.playSensors[s.sensorId].group }
+      //     """
+      return getLast24h();
     });
   };
   renderMap = function() {
-    var i, ll, tmInterval;
+    var i, ll;
     window.fn.playMap = L.map('play-map-id').setView(CENTER, 12);
     // L.tileLayer 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { }
     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {}).addTo(window.fn.playMap);
     // added for lat/lngs
-    window.fn.playMap.on('click', function(e) {
-      ons.notification.alert(`Pos: (${e.latlng.lat}, ${e.latlng.lng})`);
-      return console.log(`Pos: (${e.latlng.lat}, ${e.latlng.lng})`);
-    });
+    // window.fn.playMap.on 'click', (e) ->
+    //   ons.notification.alert "Pos: (#{ e.latlng.lat }, #{ e.latlng.lng })"
+    //   console.log "Pos: (#{ e.latlng.lat }, #{ e.latlng.lng })"
+
     // for the sake of groups add them on the map
+    // almost transparent
     polys = [];
     for (i in latlngs) {
       ll = latlngs[i];
       polys[i] = L.polygon(ll, {
-        color: getValueColor(1000),
+        color: '#dddddd',
         weight: 1
       }).addTo(window.fn.playMap);
     }
-    frameCounter = 0;
-    tmInterval = function() {
-      var j, len, p;
-      for (j = 0, len = polys.length; j < len; j++) {
-        p = polys[j];
-        p.setStyle({
-          fillColor: getValueColor(frameCounter * 10)
-        });
-      }
-      frameCounter += 1;
-      if (frameCounter > 180) {
-        return clearInterval(tmInterval);
-      }
-    };
-    setInterval(tmInterval, 200);
-    // put all sensors on map to determine area/group
-    getLast24h();
     return getSensors();
   };
-  renderMap();
-  console.log("Darkgreen:", hsl2rgb(1 / 3, 1, 0.2));
-  return console.log("Greenyellow:", hsl2rgb(1 / 3, 1, 0.59));
+  return renderMap();
 };
 
 // Darkgreen: rgb(0, 100, 0) hsl(120, 100%, 20%)

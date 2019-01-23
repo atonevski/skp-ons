@@ -271,8 +271,6 @@ latlngs = [
   ]
 ]
 
-polys = []
-frameCounter = 0
 
 window.fn.loadPlay = () ->
   content = $('#content')[0]
@@ -290,6 +288,12 @@ window.fn.loadPlay = () ->
 data = null
 stamps = []
 avgs = {}
+
+polys = []
+frameCounter = 0
+tmInterval = 0
+idInterval = null
+
 #
 renderPlay = () ->
   window.fn.selected = 'measurements'
@@ -334,7 +338,6 @@ renderPlay = () ->
       stamps = data
                 .map (x) -> x.stamp[0..14]
                 .filter (v, i, self) -> self.indexOf(v) is i
-      console.log 'stamps:', stamps
 
       avgs = { }
       for m in data
@@ -346,8 +349,30 @@ renderPlay = () ->
           avgs[s][g] = sum: 0, count: 0
         avgs[s][g].sum  += m.value * 1
         avgs[s][g].count++
-      console.log avgs
+
+
       # for every stamp, for every group calc avg typeVal...
+      frameCounter = 0
+      tmInterval = Math.ceil 30000/stamps.length
+      
+      
+      fnInterval = () ->
+        avg = avgs[stamps[frameCounter]]
+        throw "avg undefined" unless avg
+        
+        for g, v of avg
+          if v?
+            polys[g].setStyle color: getValueColor v.sum/v.count
+        frameCounter++
+        if frameCounter >= stamps.length
+          clearInterval idInterval
+          console.log "finished play"
+          for p in polys
+            p.remove()
+
+      idInterval = setInterval fnInterval, tmInterval
+      
+      console.log "started play, frame duration #{ tmInterval }ms"
 
   getSensors = () ->
     $.ajax
@@ -367,13 +392,14 @@ renderPlay = () ->
           window.fn.playSensors[s.sensorId].name = s.description
           ons.notification.toast "Unknown sensor #{ s.sensorId }"
 
-        pos = parsePos s.position
-        marker = L.marker pos, { icon: window.fn.markerIcons[0] }
-            .addTo window.fn.playMap
-            .bindPopup """
-              <p>Sensor: #{ window.fn.playSensors[s.sensorId].name }</p>
-              <p>Group: #{ window.fn.playSensors[s.sensorId].group }
-            """
+        # pos = parsePos s.position
+        # marker = L.marker pos, { icon: window.fn.markerIcons[0] }
+        #     .addTo window.fn.playMap
+        #     .bindPopup """
+        #       <p>Sensor: #{ window.fn.playSensors[s.sensorId].name }</p>
+        #       <p>Group: #{ window.fn.playSensors[s.sensorId].group }
+        #     """
+      getLast24h()
 
   renderMap = () ->
     window.fn.playMap = L.map 'play-map-id'
@@ -384,34 +410,20 @@ renderPlay = () ->
     .addTo window.fn.playMap
 
     # added for lat/lngs
-    window.fn.playMap.on 'click', (e) ->
-      ons.notification.alert "Pos: (#{ e.latlng.lat }, #{ e.latlng.lng })"
-      console.log "Pos: (#{ e.latlng.lat }, #{ e.latlng.lng })"
+    # window.fn.playMap.on 'click', (e) ->
+    #   ons.notification.alert "Pos: (#{ e.latlng.lat }, #{ e.latlng.lng })"
+    #   console.log "Pos: (#{ e.latlng.lat }, #{ e.latlng.lng })"
 
     # for the sake of groups add them on the map
+    # almost transparent
     polys = []
     for i, ll of latlngs
-      polys[i] = L.polygon ll, color: getValueColor(1000), weight: 1
+      polys[i] = L.polygon ll, color: '#dddddd', weight: 1
                   .addTo window.fn.playMap
 
-    frameCounter = 0
-    tmInterval = () ->
-      for p in polys
-        p.setStyle fillColor: getValueColor frameCounter*10
-      frameCounter += 1
-      if frameCounter > 180
-        clearInterval tmInterval
-
-    setInterval tmInterval, 200
-
-    # put all sensors on map to determine area/group
-
-    getLast24h()
     getSensors()
 
   renderMap()
-  console.log "Darkgreen:", hsl2rgb(1/3, 1, 0.2)
-  console.log "Greenyellow:", hsl2rgb(1/3, 1, 0.59)
 
 # Darkgreen: rgb(0, 100, 0) hsl(120, 100%, 20%)
 # Green: rgb(0, 128, 0) hsl(120, 100%, 25%)
