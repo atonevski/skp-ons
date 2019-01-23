@@ -272,6 +272,7 @@ latlngs = [
 ]
 
 polys = []
+frameCounter = 0
 
 window.fn.loadPlay = () ->
   content = $('#content')[0]
@@ -288,7 +289,7 @@ window.fn.loadPlay = () ->
 
 data = null
 stamps = []
-
+avgs = {}
 #
 renderPlay = () ->
   window.fn.selected = 'measurements'
@@ -335,6 +336,17 @@ renderPlay = () ->
                 .filter (v, i, self) -> self.indexOf(v) is i
       console.log 'stamps:', stamps
 
+      avgs = { }
+      for m in data
+        s = m.stamp[0..14]
+        g = fn.playSensors[m.sensorId].group
+        unless avgs[s]?
+          avgs[s] = []
+        unless avgs[s][g]?
+          avgs[s][g] = sum: 0, count: 0
+        avgs[s][g].sum  += m.value * 1
+        avgs[s][g].count++
+      console.log avgs
       # for every stamp, for every group calc avg typeVal...
 
   getSensors = () ->
@@ -379,8 +391,18 @@ renderPlay = () ->
     # for the sake of groups add them on the map
     polys = []
     for i, ll of latlngs
-      polys[i] = L.polygon ll, color: 'olive', weight: 1
+      polys[i] = L.polygon ll, color: getValueColor(1000), weight: 1
                   .addTo window.fn.playMap
+
+    frameCounter = 0
+    tmInterval = () ->
+      for p in polys
+        p.setStyle fillColor: getValueColor frameCounter*10
+      frameCounter += 1
+      if frameCounter > 180
+        clearInterval tmInterval
+
+    setInterval tmInterval, 200
 
     # put all sensors on map to determine area/group
 
@@ -430,4 +452,91 @@ hsl2rgb = (h, s, l) ->
     g = hue2rgb(p, q, h)
     b = hue2rgb(p, q, h - 1/3)
 
-  [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)]
+  # [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)]
+  "#" +
+  ('0' + Math.round(r * 255).toString(16))[-2..-1] +
+  ('0' + Math.round(g * 255).toString(16))[-2..-1] +
+  ('0' + Math.round(b * 255).toString(16))[-2..-1]
+
+# from range to range
+# assume a=[a0, a1], [b0, b1], a0 ≤ t ≤ a1
+r2r = (t, a, b) -> (b[0] - b[1])/(a[0] - a[1])*(t - a[0]) + b[0]
+
+rgb2hex = (r, g, b) ->
+  '#' +
+  ('0' + Math.floor(r%255).toString(16))[-2..-1] +
+  ('0' + Math.floor(g%255).toString(16))[-2..-1] +
+  ('0' + Math.floor(b%255).toString(16))[-2..-1]
+
+#     good:            [  0,   50]
+#     moderate:        [ 50,  100]
+#     sensitive:       [100,  250]
+#     unhealthy:       [250,  350]
+#     veryUnhealthy:   [350,  430]
+#     hazardous:       [430, 2000]
+#
+getValueColor = (val) ->
+  val = Math.round val+0
+  switch
+    when   0 <= val < 50 # good: Darkgreen - Limegreen
+      # rgb(0, 100, 0) -  rgb(50, 205, 50)
+      ra = [0, 50]
+      ga = [100, 205]
+      ba = [0, 50]
+      ar = [0, 50]
+      r = r2r val, ar, ra
+      g = r2r val, ar, ga
+      b = r2r val, ar, ba
+      rgb2hex r, g, b
+    when    50 <= val <  100 #  moderate: Limegreen - Orange
+      #   rgb(50, 205, 50)  - rgb(255, 165, 0)
+      ra = [50, 255]
+      ga = [205, 165]
+      ba = [50, 0]
+      ar = [50, 100]
+      r = r2r val, ar, ra
+      g = r2r val, ar, ga
+      b = r2r val, ar, ba
+      rgb2hex r, g, b
+    when   100 <= val <  250 # sensitive: Orange - Crimson
+      #  rgb(255, 165, 0) - rgb(220, 20, 60)
+      ra = [255, 220]
+      ga = [165, 20]
+      ba = [0, 60]
+      ar = [100, 250]
+      r = r2r val, ar, ra
+      g = r2r val, ar, ga
+      b = r2r val, ar, ba
+      rgb2hex r, g, b
+    when   250 <= val <  350 # unhealthy: Crimson - Maroon
+      #   rgb(220, 20, 60) - rgb(128, 0, 0)
+      ra = [220, 128]
+      ga = [20, 0]
+      ba = [60, 0]
+      ar = [250, 350]
+      r = r2r val, ar, ra
+      g = r2r val, ar, ga
+      b = r2r val, ar, ba
+      rgb2hex r, g, b
+    when   350 <= val <  430 # veryUnhealthy: Maroon - Purple
+      #  rgb(128, 0, 0) - rgb(128, 0, 128)
+      ra = [128, 128]
+      ga = [0, 0]
+      ba = [0, 128]
+      ar = [350, 430]
+      r = r2r val, ar, ra
+      g = r2r val, ar, ga
+      b = r2r val, ar, ba
+      rgb2hex r, g, b
+    when   430 <= val < 2000 # hazardous: Purple - Midnightblue
+      # rgb(128, 0, 128) - rgb(25, 25, 112)
+      ra = [128, 25]
+      ga = [0, 25]
+      ba = [128, 112]
+      ar = [430, 2000]
+      r = r2r val, ar, ra
+      g = r2r val, ar, ga
+      b = r2r val, ar, ba
+      rgb2hex r, g, b
+    else
+      '#dddddd'

@@ -2,7 +2,7 @@
 
 // play.coffee: play last 24h pm10 measurements
 
-var data, hsl2rgb, latlngs, polys, renderPlay, stamps;
+var avgs, data, frameCounter, getValueColor, hsl2rgb, latlngs, polys, r2r, renderPlay, rgb2hex, stamps;
 
 window.fn.playMap = null;
 
@@ -586,6 +586,8 @@ latlngs = [ //0: Бутел
 
 polys = [];
 
+frameCounter = 0;
+
 window.fn.loadPlay = function() {
   var content, menu;
   content = $('#content')[0];
@@ -602,6 +604,8 @@ window.fn.loadPlay = function() {
 data = null;
 
 stamps = [];
+
+avgs = {};
 
 
 renderPlay = function() {
@@ -644,13 +648,32 @@ renderPlay = function() {
         "Authorization": "Basic " + btoa(USERNAME + ":" + PASSWORD)
       }
     }).done((d) => {
+      var g, j, len, m, s;
       data = d;
       stamps = data.map(function(x) {
         return x.stamp.slice(0, 15);
       }).filter(function(v, i, self) {
         return self.indexOf(v) === i;
       });
-      return console.log('stamps:', stamps);
+      console.log('stamps:', stamps);
+      avgs = {};
+      for (j = 0, len = data.length; j < len; j++) {
+        m = data[j];
+        s = m.stamp.slice(0, 15);
+        g = fn.playSensors[m.sensorId].group;
+        if (avgs[s] == null) {
+          avgs[s] = [];
+        }
+        if (avgs[s][g] == null) {
+          avgs[s][g] = {
+            sum: 0,
+            count: 0
+          };
+        }
+        avgs[s][g].sum += m.value * 1;
+        avgs[s][g].count++;
+      }
+      return console.log(avgs);
     });
   };
   // for every stamp, for every group calc avg typeVal...
@@ -684,7 +707,7 @@ renderPlay = function() {
     });
   };
   renderMap = function() {
-    var i, ll;
+    var i, ll, tmInterval;
     window.fn.playMap = L.map('play-map-id').setView(CENTER, 12);
     // L.tileLayer 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { }
     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {}).addTo(window.fn.playMap);
@@ -698,10 +721,25 @@ renderPlay = function() {
     for (i in latlngs) {
       ll = latlngs[i];
       polys[i] = L.polygon(ll, {
-        color: 'olive',
+        color: getValueColor(1000),
         weight: 1
       }).addTo(window.fn.playMap);
     }
+    frameCounter = 0;
+    tmInterval = function() {
+      var j, len, p;
+      for (j = 0, len = polys.length; j < len; j++) {
+        p = polys[j];
+        p.setStyle({
+          fillColor: getValueColor(frameCounter * 10)
+        });
+      }
+      frameCounter += 1;
+      if (frameCounter > 180) {
+        return clearInterval(tmInterval);
+      }
+    };
+    setInterval(tmInterval, 200);
     // put all sensors on map to determine area/group
     getLast24h();
     return getSensors();
@@ -758,5 +796,92 @@ hsl2rgb = function(h, s, l) {
     g = hue2rgb(p, q, h);
     b = hue2rgb(p, q, h - 1 / 3);
   }
-  return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+  // [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)]
+  return "#" + ('0' + Math.round(r * 255).toString(16)).slice(-2) + ('0' + Math.round(g * 255).toString(16)).slice(-2) + ('0' + Math.round(b * 255).toString(16)).slice(-2);
+};
+
+// from range to range
+// assume a=[a0, a1], [b0, b1], a0 ≤ t ≤ a1
+r2r = function(t, a, b) {
+  return (b[0] - b[1]) / (a[0] - a[1]) * (t - a[0]) + b[0];
+};
+
+rgb2hex = function(r, g, b) {
+  return '#' + ('0' + Math.floor(r % 255).toString(16)).slice(-2) + ('0' + Math.floor(g % 255).toString(16)).slice(-2) + ('0' + Math.floor(b % 255).toString(16)).slice(-2);
+};
+
+//     good:            [  0,   50]
+//     moderate:        [ 50,  100]
+//     sensitive:       [100,  250]
+//     unhealthy:       [250,  350]
+//     veryUnhealthy:   [350,  430]
+//     hazardous:       [430, 2000]
+
+getValueColor = function(val) {
+  var ar, b, ba, g, ga, r, ra;
+  val = Math.round(val + 0);
+  switch (false) {
+    case !((0 <= val && val < 50)): // good: Darkgreen - Limegreen
+      // rgb(0, 100, 0) -  rgb(50, 205, 50)
+      ra = [0, 50];
+      ga = [100, 205];
+      ba = [0, 50];
+      ar = [0, 50];
+      r = r2r(val, ar, ra);
+      g = r2r(val, ar, ga);
+      b = r2r(val, ar, ba);
+      return rgb2hex(r, g, b);
+    case !((50 <= val && val < 100)): //  moderate: Limegreen - Orange
+      //   rgb(50, 205, 50)  - rgb(255, 165, 0)
+      ra = [50, 255];
+      ga = [205, 165];
+      ba = [50, 0];
+      ar = [50, 100];
+      r = r2r(val, ar, ra);
+      g = r2r(val, ar, ga);
+      b = r2r(val, ar, ba);
+      return rgb2hex(r, g, b);
+    case !((100 <= val && val < 250)): // sensitive: Orange - Crimson
+      //  rgb(255, 165, 0) - rgb(220, 20, 60)
+      ra = [255, 220];
+      ga = [165, 20];
+      ba = [0, 60];
+      ar = [100, 250];
+      r = r2r(val, ar, ra);
+      g = r2r(val, ar, ga);
+      b = r2r(val, ar, ba);
+      return rgb2hex(r, g, b);
+    case !((250 <= val && val < 350)): // unhealthy: Crimson - Maroon
+      //   rgb(220, 20, 60) - rgb(128, 0, 0)
+      ra = [220, 128];
+      ga = [20, 0];
+      ba = [60, 0];
+      ar = [250, 350];
+      r = r2r(val, ar, ra);
+      g = r2r(val, ar, ga);
+      b = r2r(val, ar, ba);
+      return rgb2hex(r, g, b);
+    case !((350 <= val && val < 430)): // veryUnhealthy: Maroon - Purple
+      //  rgb(128, 0, 0) - rgb(128, 0, 128)
+      ra = [128, 128];
+      ga = [0, 0];
+      ba = [0, 128];
+      ar = [350, 430];
+      r = r2r(val, ar, ra);
+      g = r2r(val, ar, ga);
+      b = r2r(val, ar, ba);
+      return rgb2hex(r, g, b);
+    case !((430 <= val && val < 2000)): // hazardous: Purple - Midnightblue
+      // rgb(128, 0, 128) - rgb(25, 25, 112)
+      ra = [128, 25];
+      ga = [0, 25];
+      ba = [128, 112];
+      ar = [430, 2000];
+      r = r2r(val, ar, ra);
+      g = r2r(val, ar, ga);
+      b = r2r(val, ar, ba);
+      return rgb2hex(r, g, b);
+    default:
+      return '#dddddd';
+  }
 };
