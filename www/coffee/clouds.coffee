@@ -60,7 +60,7 @@ renderClouds = () ->
     'Precipitation Classic': L.OWM.precipitationClassic appId: APPID, opacity: 0.35
     Rain: L.OWM.rain appId: APPID, opacity: 0.5
     'Rain Classic': L.OWM.rainClassic appId: APPID, opacity: 0.35
-    Snow: L.OWM.snow appId: APPID
+    Snow: L.OWM.snow appId: APPID, opacity: 0.65
     Pressure: L.OWM.pressure appId: APPID, opacity: 0.45
     'Pressure Contour': L.OWM.pressureContour appId: APPID
     Temperature: L.OWM.temperature appId: APPID, opacity: 0.33

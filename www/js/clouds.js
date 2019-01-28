@@ -84,7 +84,8 @@ renderClouds = function() {
       opacity: 0.35
     }),
     Snow: L.OWM.snow({
-      appId: APPID
+      appId: APPID,
+      opacity: 0.65
     }),
     Pressure: L.OWM.pressure({
       appId: APPID,

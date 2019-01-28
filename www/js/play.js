@@ -680,11 +680,16 @@ renderPlay = function() {
       frameCounter = 0;
       tmInterval = Math.ceil(30000 / stamps.length);
       fnInterval = function() {
-        var avg, k, len1, p, results, v;
+        var avg, k, len1, p, results, stamp, v;
+        stamp = stamps[frameCounter];
         avg = avgs[stamps[frameCounter]];
         if (!avg) {
           throw "avg undefined";
         }
+        
+        // put tm stamp in the right corner
+        stamp = stamp.slice(0, 10) + ' ' + stamp.slice(-4) + '0';
+        $('#label-id').html(stamp);
         for (g in avg) {
           v = avg[g];
           if (v != null) {
@@ -697,6 +702,7 @@ renderPlay = function() {
         if (frameCounter >= stamps.length) {
           clearInterval(idInterval);
           console.log("finished play");
+          $('#label-id').html('');
           results = [];
           for (k = 0, len1 = polys.length; k < len1; k++) {
             p = polys[k];

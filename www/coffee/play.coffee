@@ -357,9 +357,14 @@ renderPlay = () ->
       
       
       fnInterval = () ->
+        stamp = stamps[frameCounter]
         avg = avgs[stamps[frameCounter]]
         throw "avg undefined" unless avg
         
+        # put tm stamp in the right corner
+        stamp = stamp[0..9] + ' ' + stamp[-4..-1] + '0'
+        $('#label-id').html stamp
+
         for g, v of avg
           if v?
             polys[g].setStyle color: getValueColor v.sum/v.count
@@ -367,6 +372,7 @@ renderPlay = () ->
         if frameCounter >= stamps.length
           clearInterval idInterval
           console.log "finished play"
+          $('#label-id').html ''
           for p in polys
             p.remove()
 
