@@ -49,7 +49,7 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
-          <ons-icon icon="ion-clock" class="list-item__icon"></ons-icon>
+          <ons-icon class="list-item__icon"><i class="far fa-clock"></i></ons-icon>
         </div>
         <div class='center'>
           <strong>Time:</strong>&nbsp;
@@ -108,7 +108,7 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
-          <ons-icon icon="ion-hammer" class="list-item__icon"></ons-icon>
+          <ons-icon icon="fa-compress-arrows-alt" class="list-item__icon"></ons-icon>
         </div>
           <strong>Pressure:</strong>&nbsp;
           #{ Math.round d.currently.pressure }&nbsp;hPa
@@ -120,7 +120,7 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
-          <ons-icon icon="md-cloud" class="list-item__icon"></ons-icon>
+          <ons-icon icon="fa-cloud-sun" class="list-item__icon"></ons-icon>
         </div>
           <strong>Cloud cover:</strong>&nbsp;
           #{ Math.round d.currently.cloudCover*100 }%
@@ -132,7 +132,7 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
-          <ons-icon icon="fa-shower" class="list-item__icon"></ons-icon>
+          <ons-icon icon="fa-cloud-rain" class="list-item__icon"></ons-icon>
         </div>
         <div class='center'>
           <strong>Precipitation:</strong>&nbsp;
@@ -146,7 +146,7 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
-          <ons-icon icon="fa-redo-alt" class="list-item__icon" spin></ons-icon>
+          <ons-icon icon="fa-wind" class="list-item__icon"></ons-icon>
         </div>
         <div class='center'>
           <strong>Wind:</strong>&nbsp;
@@ -160,7 +160,7 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
-          <ons-icon icon="fa-compass" class="list-item__icon"></ons-icon>
+          <ons-icon class="list-item__icon"><i class="far fa-compass"></i></ons-icon>
         </div>
         <div class='center'>
           <strong>Wind bearing:</strong>&nbsp;
@@ -175,7 +175,7 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
-          <ons-icon icon="fa-circle-notch" class="list-item__icon"></ons-icon>
+          <ons-icon class="list-item__icon"><i class="far fa-circle"></i></ons-icon>
         </div>
         <div class='center'>
           <strong>Ozone:</strong>&nbsp;
@@ -204,7 +204,15 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
+          <!--
           <ons-icon icon="fa-arrow-up" class="list-item__icon"></ons-icon>
+          -->
+          <ons-icon class="list-item__icon">
+            <span class='fa-stack'>
+            <i class="fas fa-arrow-up" style='font-size: 75%;'></i>
+            <i class="fas fa-sun"></i>
+            </span>
+          </ons-icon>
         </div>
         <div class='center'>
           <strong>Sunrise:</strong>&nbsp;
@@ -218,7 +226,15 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
+          <!--
           <ons-icon icon="fa-arrow-down" class="list-item__icon"></ons-icon>
+          -->
+          <ons-icon class="list-item__icon">
+            <span class='fa-stack'>
+            <i class="fas fa-arrow-down" style='font-size: 75%;'></i>
+            <i class="fas fa-sun"></i>
+            </span>
+          </ons-icon>
         </div>
         <div classs='center'>
           <strong>Sunset:</strong>&nbsp;
