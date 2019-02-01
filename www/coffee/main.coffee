@@ -27,6 +27,58 @@ mph2kmph = (m) -> m * 1.609344
 # meters per second to kilometers per hour
 mps2kmph = (m) -> 3600.0 * m / 1000
 
+weatherIconFor = (i) ->
+  switch i
+    when 'clear-day'    then 'wi-day-sunny'
+    when 'clear-night'  then 'wi-night-clear'
+    when 'rain'         then 'wi-rain'
+    when 'snow'         then 'wi-snow'
+    when 'sleet'        then 'wi-sleet'
+    when 'wind'         then 'wi-strong-wind'
+    when 'fog'          then 'wi-fog'
+    when 'cloudy'       then 'wi-cloudy'
+    when 'partly-cloudy-day'    then 'wi-day-cloudy'
+    when 'partly-cloudy-night'  then 'wi-night-alt-partly-cloudy'
+    when 'hail'         then 'wi-hail'
+    when 'thunderstorm' then 'wi-thunderstorm'
+    when 'tornado'      then 'wi-tornado'
+    else 'wi-na'
+
+windBearingIcon = (b) ->
+  switch
+    when   0 <= b <  23
+      'from-0-deg'
+    when  23 <= b <  45
+      'from-23-deg'
+    when  45 <= b <  68
+      'from-45-deg'
+    when  68 <= b <  90
+      'from-68-deg'
+    when  90 <= b < 113
+      'from-90-deg'
+    when 113 <= b < 135
+      'from-113-deg'
+    when 135 <= b < 158
+      'from-135-deg'
+    when 158 <= b < 180
+      'from-158-deg'
+    when 180 <= b < 203
+      'from-180-deg'
+    when 203 <= b < 225
+      'from-203-deg'
+    when 225 <= b < 248
+      'from-225-deg'
+    when 248 <= b < 270
+      'from-248-deg'
+    when 270 <= b < 293
+      'from-270-deg'
+    when 293 <= b < 313
+      'from-293-deg'
+    when 313 <= b < 336
+      'from-313-deg'
+    when 336 <= b
+      'from-336-deg'
+
 renderHome = () ->
   window.fn.selected = 'home'
   
@@ -38,9 +90,15 @@ renderHome = () ->
     url: url
     method: 'GET'
   .done (d) ->
-    # console.log d
+    console.log d
     window.fn.weather = d
     $('p#temp').html "#{ Math.round d.currently.temperature }&deg;C"
+
+    rtitle = $('div#home-title-right').empty()
+    rtitle.html """
+      <i class='wi #{ weatherIconFor d.currently.icon }'></i>
+      <span>#{ Math.round d.currently.temperature }&deg;C</span>
+    """
 
     list = $('ons-list#current-values')
     list.empty()
@@ -49,7 +107,9 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
-          <ons-icon class="list-item__icon"><i class="far fa-clock"></i></ons-icon>
+          <ons-icon class="list-item__icon">
+            <i class="wi wi-time-10"></i>
+          </ons-icon>
         </div>
         <div class='center'>
           <strong>Time:</strong>&nbsp;
@@ -66,7 +126,9 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
-          <ons-icon icon="fa-pencil-ruler" class="list-item__icon"></ons-icon>
+          <ons-icon class="list-item__icon">
+            <i class='wi #{ weatherIconFor d.currently.icon }'></i>
+          </ons-icon>
         </div>
         <div class='center'>
           <strong>Summary:</strong>&nbsp;
@@ -80,7 +142,9 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
-          <ons-icon icon="fa-thermometer-half" class="list-item__icon"></ons-icon>
+          <ons-icon class="list-item__icon">
+            <i class='wi wi-thermometer'></i>
+          </ons-icon>
         </div>
         <div class='center'>
           <strong>Apparent temp.:</strong>&nbsp;
@@ -94,7 +158,9 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
-          <ons-icon icon="fa-tint" class="list-item__icon"></ons-icon>
+          <ons-icon class="list-item__icon">
+            <i class='wi wi-humidity'></i>
+          </ons-icon>
         </div>
         <div class='center'>
           <strong>Humidity:</strong>&nbsp;
@@ -108,7 +174,9 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
-          <ons-icon icon="fa-compress-arrows-alt" class="list-item__icon"></ons-icon>
+          <ons-icon class="list-item__icon">
+            <i class='wi wi-barometer'></i>
+          </ons-icon>
         </div>
           <strong>Pressure:</strong>&nbsp;
           #{ Math.round d.currently.pressure }&nbsp;hPa
@@ -120,10 +188,26 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
-          <ons-icon icon="fa-cloud-sun" class="list-item__icon"></ons-icon>
+          <ons-icon class="list-item__icon">
+            <i class='wi wi-day-cloudy-high'></i>
+          </ons-icon>
         </div>
           <strong>Cloud cover:</strong>&nbsp;
           #{ Math.round d.currently.cloudCover*100 }%
+      </ons-list-item>
+    """
+    list.append item
+
+    # visibility
+    item = ons.createElement """
+      <ons-list-item class='open-sans'>
+        <div class="left">
+          <ons-icon class="list-item__icon">
+            <i class="far fa-eye"></i>
+          </ons-icon>
+        </div>
+          <strong>Visibility:</strong>&nbsp;
+          #{ d.currently.visibility }&nbsp;km
       </ons-list-item>
     """
     list.append item
@@ -132,7 +216,9 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
-          <ons-icon icon="fa-cloud-rain" class="list-item__icon"></ons-icon>
+          <ons-icon class="list-item__icon">
+            <i class='wi wi-raindrops'></i>
+          </ons-icon>
         </div>
         <div class='center'>
           <strong>Precipitation:</strong>&nbsp;
@@ -142,15 +228,17 @@ renderHome = () ->
     """
     list.append item
 
-    # wind
+    # wind returned is m/sec ~  60*60/1000 k/h
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
-          <ons-icon icon="fa-wind" class="list-item__icon"></ons-icon>
+          <ons-icon class="list-item__icon">
+            <i class='wi wi-strong-wind'></i>
+          </ons-icon>
         </div>
         <div class='center'>
           <strong>Wind:</strong>&nbsp;
-          #{  (mph2kmph d.currently.windSpeed).toFixed(2) }km/h
+          #{  (3.6 * d.currently.windSpeed).toFixed(2) }&nbsp;km/h
         </div>
       </ons-list-item>
     """
@@ -160,7 +248,9 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
-          <ons-icon class="list-item__icon"><i class="far fa-compass"></i></ons-icon>
+          <ons-icon class="list-item__icon">
+            <i class='wi wi-wind #{ windBearingIcon d.currently.windBearing }'></i>
+          </ons-icon>
         </div>
         <div class='center'>
           <strong>Wind bearing:</strong>&nbsp;
@@ -175,7 +265,9 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
-          <ons-icon class="list-item__icon"><i class="far fa-circle"></i></ons-icon>
+          <ons-icon class="list-item__icon">
+            <i class="far fa-circle"></i><sub><small>3</small></sub>
+          </ons-icon>
         </div>
         <div class='center'>
           <strong>Ozone:</strong>&nbsp;
@@ -204,14 +296,8 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
-          <!--
-          <ons-icon icon="fa-arrow-up" class="list-item__icon"></ons-icon>
-          -->
           <ons-icon class="list-item__icon">
-            <span class='fa-stack'>
-            <i class="fas fa-arrow-up" style='font-size: 75%;'></i>
-            <i class="fas fa-sun"></i>
-            </span>
+            <i class="wi wi-sunrise"></i>
           </ons-icon>
         </div>
         <div class='center'>
@@ -226,14 +312,8 @@ renderHome = () ->
     item = ons.createElement """
       <ons-list-item class='open-sans'>
         <div class="left">
-          <!--
-          <ons-icon icon="fa-arrow-down" class="list-item__icon"></ons-icon>
-          -->
           <ons-icon class="list-item__icon">
-            <span class='fa-stack'>
-            <i class="fas fa-arrow-down" style='font-size: 75%;'></i>
-            <i class="fas fa-sun"></i>
-            </span>
+            <i class="wi wi-sunset"></i>
           </ons-icon>
         </div>
         <div classs='center'>
