@@ -36,6 +36,28 @@ moonPhaseIcon = (v) -> # v: 0..1
     else
       "wi-na"
 
+moonPhaseIconAlt = (v) -> # v: 0..1
+  v = Math.floor 28 * v
+  switch
+    when v is 0
+      'wi-moon-alt-new'
+    when 0 < v < 7
+      "wi-moon-alt-waxing-crescent-#{ v }"
+    when v is 7
+      'wi-moon-alt-first-quarter'
+    when 7 < v < 14
+      "wi-moon-alt-waxing-gibbous-#{ v - 7 }"
+    when v is 14
+      'wi-moon-alt-full'
+    when 14 < v < 21
+      "wi-moon-alt-waning-gibbous-#{ v - 14 }"
+    when v is 21
+      'wi-moon-alt-third-quarter'
+    when 21 < v < 28
+      "wi-moon-alt-waning-crescent-#{ v - 21 }"
+    else
+      "wi-na"
+
 dailyPrev = () -> $('#carousel')[0].prev()
 
 dailyNext = () -> $('#carousel')[0].next()
@@ -177,7 +199,7 @@ renderDaily = () ->
                 <ons-list-item class='open-sans' modifier='nodivider noborder'>
                   <div class="left">
                     <ons-icon class="list-item__icon">
-                      <i class='wi #{ moonPhaseIcon dd.moonPhase }'></i>
+                      <i class='wi #{ moonPhaseIconAlt dd.moonPhase }'></i>
                     </ons-icon>
                   </div>
                   <div class='center'><strong>Moon phase:</strong>&nbsp;
