@@ -119,7 +119,7 @@ renderHome = function() {
     method: 'GET'
   }).done(function(d) {
     var item, list, rtitle;
-    console.log(d);
+    // console.log d
     window.fn.weather = d;
     $('p#temp').html(`${Math.round(d.currently.temperature)}&deg;C`);
     rtitle = $('div#home-title-right').empty();
@@ -133,7 +133,7 @@ renderHome = function() {
     item = ons.createElement(`<ons-list-item class='open-sans'>\n  <div class="left">\n    <ons-icon class="list-item__icon">\n      <i class='wi ${weatherIconFor(d.currently.icon)}'></i>\n    </ons-icon>\n  </div>\n  <div class='center'>\n    <strong>Summary:</strong>&nbsp;\n    ${d.currently.summary}\n  </div>\n</ons-list-item>`);
     list.append(item);
     // apparent temp.
-    item = ons.createElement(`<ons-list-item class='open-sans'>\n  <div class="left">\n    <ons-icon class="list-item__icon">\n      <i class='wi wi-thermometer'></i>\n    </ons-icon>\n  </div>\n  <div class='center'>\n    <strong>Apparent temp.:</strong>&nbsp;\n      ${Math.round(d.currently.humidity)}&degC;\n  </div>\n</ons-list-item>`);
+    item = ons.createElement(`<ons-list-item class='open-sans'>\n  <div class="left">\n    <ons-icon class="list-item__icon">\n      <i class='wi wi-thermometer'></i>\n    </ons-icon>\n  </div>\n  <div class='center'>\n    <strong>Apparent temperature:</strong>&nbsp;\n      ${Math.round(d.currently.apparentTemperature)}&degC;\n  </div>\n</ons-list-item>`);
     list.append(item);
     // humidity
     item = ons.createElement(`<ons-list-item class='open-sans'>\n  <div class="left">\n    <ons-icon class="list-item__icon">\n      <i class='wi wi-humidity'></i>\n    </ons-icon>\n  </div>\n  <div class='center'>\n    <strong>Humidity:</strong>&nbsp;\n    ${Math.round(d.currently.humidity * 100)}%\n  </div>\n</ons-list-item>`);

@@ -81,7 +81,7 @@ windBearingIcon = (b) ->
 
 renderHome = () ->
   window.fn.selected = 'home'
-  
+
   KEY = '6376c1cdba2fa461f346e9a27524406d'
   LAT = 42
   LNG = 21.43
@@ -90,7 +90,7 @@ renderHome = () ->
     url: url
     method: 'GET'
   .done (d) ->
-    console.log d
+    # console.log d
     window.fn.weather = d
     $('p#temp').html "#{ Math.round d.currently.temperature }&deg;C"
 
@@ -147,8 +147,8 @@ renderHome = () ->
           </ons-icon>
         </div>
         <div class='center'>
-          <strong>Apparent temp.:</strong>&nbsp;
-            #{ Math.round d.currently.humidity }&degC;
+          <strong>Apparent temperature:</strong>&nbsp;
+            #{ Math.round d.currently.apparentTemperature }&degC;
         </div>
       </ons-list-item>
     """
